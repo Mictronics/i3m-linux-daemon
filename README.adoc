@@ -20,6 +20,10 @@ For debugging purposes, issue `make debug=1`.
 
 '*obj*' directory will hold object and other temporary files, '*bin*' directory will hold the executables.
 
+Install build dependencies:
+
+`sudo apt-get install libsensors-dev libatasmart-dev libi2c-dev`
+
 == Supported features status
 
 * CPU Temperature

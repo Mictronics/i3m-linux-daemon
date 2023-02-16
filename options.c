@@ -22,10 +22,8 @@
 #include "registers.h"
 #include "auto_generated.h"
 
-
-#define starts_with(substr, str, idx)	((str != NULL) && (((idx) = strlen(substr)), !strncmp((substr), (str), (idx))))
-#define mask_if_match(r, p)		((long)(!strncmp(#r, p, strlen(#r))) * ATFP_MASK_PENDR0_##r)
-
+#define starts_with(substr, str, idx) ((str != NULL) && (((idx) = strlen(substr)), !strncmp((substr), (str), (idx))))
+#define mask_if_match(r, p) ((long)(!strncmp(#r, p, strlen(#r))) * ATFP_MASK_PENDR0_##r)
 
 /*
  * Syslog loglevel: convert string representation to int.
@@ -39,8 +37,10 @@ static bool loglevel_conv_string_to_int(const char *s_loglevel, int *i_loglevel)
 	const int i_loglevels[] = {LOG_NOTICE, LOG_INFO, LOG_DEBUG};
 
 	idx = 0;
-	while (s_loglevels[idx] != NULL) {
-		if ( !strncmp(s_loglevels[idx], s_loglevel, strlen(s_loglevels[idx])) ) {
+	while (s_loglevels[idx] != NULL)
+	{
+		if (!strncmp(s_loglevels[idx], s_loglevel, strlen(s_loglevels[idx])))
+		{
 			*i_loglevel = i_loglevels[idx];
 			return true;
 		}
@@ -54,24 +54,25 @@ static bool loglevel_conv_string_to_int(const char *s_loglevel, int *i_loglevel)
 static int options_parse_cmdline(Options *opts, int argc, char *argv[])
 {
 	const struct option long_options[] = {
-		{"version",		no_argument,		0,	'v'},
-		{"help",		no_argument,		0,	'h'},
-		{"info",		no_argument,		0,	'i'},
-		{"i2c-bus",		required_argument,	0,	'b'},
-		{"i2c-delay",           required_argument,	0,	'd'},
-		{"poll-cycle",		required_argument,	0,	'p'},
-		{"loglevel",      	required_argument,	0,	'l'},
-		{"configfile",          required_argument,	0,	'f'},
-		{0,			0,			0,	0}
-	};
+		{"version", no_argument, 0, 'v'},
+		{"help", no_argument, 0, 'h'},
+		{"info", no_argument, 0, 'i'},
+		{"i2c-bus", required_argument, 0, 'b'},
+		{"i2c-delay", required_argument, 0, 'd'},
+		{"poll-cycle", required_argument, 0, 'p'},
+		{"loglevel", required_argument, 0, 'l'},
+		{"configfile", required_argument, 0, 'f'},
+		{0, 0, 0, 0}};
 
 	int option_index = 0;
 	int c;
 
-	while (true) {
+	while (true)
+	{
 		c = getopt_long_only(argc, argv, "", long_options, &option_index);
 
-		switch (c) {
+		switch (c)
+		{
 		case -1:
 			/* no more valid options */
 			/* test nothing has left in argv[] */
@@ -106,7 +107,7 @@ static int options_parse_cmdline(Options *opts, int argc, char *argv[])
 			opts->loglevel_set = loglevel_conv_string_to_int(optarg, &opts->loglevel);
 			break;
 		case 'f':
-			strncpy(opts->configfile, optarg, sizeof(opts->configfile));
+			strncpy(opts->configfile, optarg, sizeof(opts->configfile) - 1);
 			break;
 		case 'v':
 			opts->version = true;
@@ -122,8 +123,10 @@ static bool is_nodata_line(const char *line)
 	if (line == NULL)
 		return true;
 
-	for (i = 0; line[i] != '\0'; ++i) {
-		if ( !isspace(line[i]) ) {
+	for (i = 0; line[i] != '\0'; ++i)
+	{
+		if (!isspace(line[i]))
+		{
 			if (line[i] == '#')
 				break;
 
@@ -146,7 +149,8 @@ static int options_parse_configfile(Options *opts, const char *filename)
 		return 0;
 
 	config = fopen(filename, "r");
-	if (config == NULL) {
+	if (config == NULL)
+	{
 		if (errno == ENOENT)
 			return 0;
 
@@ -155,37 +159,49 @@ static int options_parse_configfile(Options *opts, const char *filename)
 		return -errno;
 	}
 
-	while ( !feof(config) ) {
+	while (!feof(config))
+	{
 		line = fgets(buff, sizeof(buff), config);
-		if (is_nodata_line(line)) {
+		if (is_nodata_line(line))
+		{
 			continue;
 		}
-		else if (starts_with("i2c-bus=", line, k)) {
-			if (!opts->i2c_bus_set) {
+		else if (starts_with("i2c-bus=", line, k))
+		{
+			if (!opts->i2c_bus_set)
+			{
 				opts->i2c_bus = strtol(&line[k], NULL, 0);
 				opts->i2c_bus_set = true;
 			}
 		}
-		else if (starts_with("i2c-delay=", line, k)) {
-			if (!opts->i2c_delay_set) {
+		else if (starts_with("i2c-delay=", line, k))
+		{
+			if (!opts->i2c_delay_set)
+			{
 				opts->i2c_delay = strtol(&line[k], NULL, 0);
 				opts->i2c_delay_set = true;
 			}
 		}
-		else if (starts_with("poll-cycle=", line, k)) {
-			if (!opts->poll_cycle_set) {
+		else if (starts_with("poll-cycle=", line, k))
+		{
+			if (!opts->poll_cycle_set)
+			{
 				opts->poll_cycle = strtol(&line[k], NULL, 0);
 				opts->poll_cycle_set = true;
 			}
 		}
-		else if (starts_with("loglevel=", line, k)) {
-			if (!opts->loglevel_set) {
+		else if (starts_with("loglevel=", line, k))
+		{
+			if (!opts->loglevel_set)
+			{
 				opts->loglevel_set = loglevel_conv_string_to_int(&line[k], &opts->loglevel);
 			}
 		}
-		else if (starts_with("disable=", line, k)) {
+		else if (starts_with("disable=", line, k))
+		{
 			char *ptr = strtok(&line[k], ",");
-			while (ptr != NULL) {
+			while (ptr != NULL)
+			{
 				opts->disable |= mask_if_match(HDDTR, ptr);
 				opts->disable |= mask_if_match(CPUFR, ptr);
 				opts->disable |= mask_if_match(CPUTR, ptr);
@@ -194,7 +210,8 @@ static int options_parse_configfile(Options *opts, const char *filename)
 				ptr = strtok(NULL, ",");
 			}
 		}
-		else {
+		else
+		{
 			goto configfile_out_err;
 		}
 	}
@@ -292,4 +309,3 @@ void show_options(Options *opts)
 	printf("configfile  : %s \n", opts->configfile);
 	printf("disable     : 0x%016lx \n", opts->disable);
 }
-

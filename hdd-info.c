@@ -2,8 +2,8 @@
  * Copyright (C) 2016, CompuLab ltd.
  * Author: Andrey Gelman <andrey.gelman@compulab.co.il>
  * License: GNU GPLv2 or later, at your option
- * 
- * Gather some HDD-related information using the S.M.A.R.T. technology. 
+ *
+ * Gather some HDD-related information using the S.M.A.R.T. technology.
  * This code relies on libatasmart.
  */
 
@@ -20,13 +20,10 @@
 #include "dlist.h"
 #include "hdd-info.h"
 
-
-#define SYS_BLOCK_PATH			"/sys/block"
-#define DEV_BLOCK_PATH			"/dev"
-
+#define SYS_BLOCK_PATH "/sys/block"
+#define DEV_BLOCK_PATH "/dev"
 
 DList *smart_devices = NULL;
-
 
 /*
  * SMARTinfo freelist-based memory management
@@ -53,7 +50,6 @@ void delete_SMARTinfo(SMARTinfo *si)
 	dlist_push_back(SMARTinfo_freelist, si);
 }
 
-
 static void hdd_info_cleanup(void)
 {
 	SMARTinfo *si;
@@ -76,7 +72,6 @@ static void hdd_info_init(void)
 	atexit(hdd_info_cleanup);
 }
 
-
 static unsigned int to_celsius(uint64_t millikelvin)
 {
 	return (millikelvin - 273150) / 1000;
@@ -94,13 +89,15 @@ static void scan_dirs(const char *path, int (*visitor)(const char *ata_dev, void
 	int n;
 
 	root = opendir(path);
-	if (root == NULL) {
+	if (root == NULL)
+	{
 		sloge("%s: could not open directory: %m", path);
 		return;
 	}
 
 	keep_searching = true;
-	while (((d = readdir(root)) != NULL) && keep_searching) {
+	while (((d = readdir(root)) != NULL) && keep_searching)
+	{
 		if (!strcmp(".", d->d_name) || !strcmp("..", d->d_name))
 			continue;
 
@@ -131,33 +128,39 @@ static int atasmart_get_info(const char *devname, void *arg)
 	snprintf(device, sizeof(device), "%s/%s", DEV_BLOCK_PATH, devname);
 
 	err = sk_disk_open(device, &d);
-	if (err < 0) {
+	if (err < 0)
+	{
 		sloge("%s: could not open: %m", device);
 		goto gettemp_out0;
 	}
 
 	err = sk_disk_smart_read_data(d);
-	if (err < 0) {
+	if (err < 0)
+	{
 		slogi("%s: could not read SMART data: %m", device);
 		goto gettemp_out1;
 	}
 
 	si = new_SMARTinfo();
-	strncpy(si->devname, devname, HDD_DEVNAME_SIZE);
+	strncpy(si->devname, devname, HDD_DEVNAME_SIZE - 1);
 	err = sk_disk_smart_get_temperature(d, &mkelvin);
-	if (err < 0) {
+	if (err < 0)
+	{
 		slogi("%s: SMART: temperature is not available", device);
 	}
-	else {
+	else
+	{
 		si->temp = to_celsius(mkelvin);
 		si->temp_valid = true;
 	}
 
 	err = sk_disk_get_size(d, &size_B);
-	if (err < 0) {
+	if (err < 0)
+	{
 		slogi("%s: SMART: size is not available", device);
 	}
-	else {
+	else
+	{
 		si->size_GB = (unsigned int)(size_B >> 30);
 		si->size_valid = true;
 	}
@@ -170,7 +173,6 @@ gettemp_out0:
 	return 1;
 }
 
-
 void hdd_get_temperature(DList **sd)
 {
 	if (smart_devices == NULL)
@@ -179,4 +181,3 @@ void hdd_get_temperature(DList **sd)
 	scan_dirs(SYS_BLOCK_PATH, atasmart_get_info, smart_devices);
 	*sd = smart_devices;
 }
-

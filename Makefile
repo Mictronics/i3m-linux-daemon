@@ -26,7 +26,7 @@ NVMLDIR = nvml
 OBJS    = $(SOURCES:%.c=$(OBJDIR)/%.o)
 CFLAGS  = -Wall -I$(NVMLDIR) -Wno-format-truncation
 LFLAGS  = -Wall -rdynamic
-LLIBS   = -lsensors -lpthread -lm -ldl -latasmart
+LLIBS   = -lsensors -lpthread -lm -ldl -latasmart -li2c
 COMPILE_CMD = gcc $(CFLAGS)
 STRIP_CMD   = strip
 LINK_CMD    = gcc $(LFLAGS)

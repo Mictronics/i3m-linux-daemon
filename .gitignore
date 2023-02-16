@@ -1,4 +1,5 @@
 obj/*
 bin/*
 auto_generated.h
-
+.vscode
+*.code-workspace

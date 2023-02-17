@@ -7,9 +7,8 @@ Description=airtop-fpsvc daemon
 # the process will detach itself to the background,
 # i.e. will daemonize by itself
 Type=forking
-EnvironmentFile=-/etc/default/airtop-fpsvc
 ExecStartPre=/sbin/modprobe i2c-i801
-ExecStart=/usr/bin/airtop-fpsvc
+ExecStart=/usr/bin/airtop-fpsvc --configfile=/etc/default/airtop-fpsvc
 Restart=on-failure
 
 [Install]

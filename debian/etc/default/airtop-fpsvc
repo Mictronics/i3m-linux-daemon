@@ -1,0 +1,18 @@
+# Front panel controller I2C bus. By default, FP I2C bus will be discovered automatically.
+#i2c-bus=
+
+# Number of micro-seconds to delay prior to I2C-writing front panel. By default, I2C delay is zero.
+#i2c-delay=
+
+# Number of seconds to poll for front panel request.
+#poll-cycle=
+
+# Print to system log messages up to LEVEL. LEVEL may be either [notice], info, debug
+#loglevel=
+
+# Disable particular functionality, that may be requested by the FP controller. Function may be:
+# HDDTR HDD temperature
+# CPUFR CPU frequency
+# CPUTR CPU temperature
+# GPUTR GPU temperature
+#disable=

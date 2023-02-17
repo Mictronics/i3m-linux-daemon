@@ -1,0 +1,54 @@
+#!/bin/bash
+set -e
+
+apply_to_kernel_cmdline()
+{
+    local grubfile=${1}
+    local tmpfile=${2}
+    local suffix=${3}
+    
+    local found_pattern=
+    
+    cat ${grubfile} | while read line; do
+        found_pattern=`echo ${line} | grep -E ^"GRUB_CMDLINE_LINUX_DEFAULT="`
+        if [[ -z ${found_pattern} ]]; then
+            # irrelevant line
+            printf '%s\n' "${line}" >> ${tmpfile}
+            continue
+        fi
+        
+        found_pattern=`echo ${line} | grep "${suffix}"`
+        if [[ -n ${found_pattern} ]]; then
+            # the fix is already in place
+            printf '%s\n' "${line}" >> ${tmpfile}
+            continue
+        fi
+        
+        # apply the fix
+        # last symbol is quotation - remove it
+        printf '%s %s"\n' "${line:0:-1}" "${suffix}" >> ${tmpfile}
+        echo "fix-applied"
+    done
+}
+
+patch_kernel_cmdline()
+{
+    local grubfile="/etc/default/grub"
+    local tmpfile=`tempfile --mode=0644 --directory=/tmp --prefix=grub-`
+    local suffix="acpi_enforce_resources=lax"
+    
+    local applied=
+    
+    applied=`apply_to_kernel_cmdline ${grubfile} ${tmpfile} ${suffix}`
+    if [[ -n ${applied} ]]; then
+        cp ${tmpfile} ${grubfile}
+        update-grub
+    fi
+    rm ${tmpfile}
+}
+
+patch_kernel_cmdline || :
+deb-systemd-helper enable airtop-fpsvc.service || :
+deb-systemd-invoke start airtop-fpsvc.service || :
+deb-systemd-helper enable gpu-thermald.service || :
+deb-systemd-invoke start gpu-thermald.service || :

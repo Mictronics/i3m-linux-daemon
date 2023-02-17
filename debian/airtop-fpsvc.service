@@ -1,0 +1,17 @@
+# airtop-fpsvc - CompuLab AirTop Front Panel Service Daemon
+
+[Unit]
+Description=airtop-fpsvc daemon
+
+[Service]
+# the process will detach itself to the background,
+# i.e. will daemonize by itself
+Type=forking
+EnvironmentFile=-/etc/default/airtop-fpsvc
+ExecStartPre=/sbin/modprobe i2c-i801
+ExecStart=/usr/bin/airtop-fpsvc
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

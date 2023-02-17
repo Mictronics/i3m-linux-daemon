@@ -6,15 +6,7 @@ This project consists of the following parts:
     controller.
 . *gpu-thermald* - GPU Thermal daemon. This service sets GPU temperature upper limit by constantly controlling its power.
 
-There is also a 'sister-project' - package, that wraps the services above into
-debian packages:
-
-* airtop-fpsvc_upstart.deb
-* airtop-fpsvc_systemd.deb
-
-Additional package types might be added in the future.
-
-== Building the source code
+== Building manually
 Issue `make` in project top directory (where Makefile is present).
 For debugging purposes, issue `make debug=1`.
 
@@ -23,6 +15,14 @@ For debugging purposes, issue `make debug=1`.
 Install build dependencies:
 
 `sudo apt-get install libsensors-dev libatasmart-dev libi2c-dev`
+
+=== Package build
+`dpkg-buildpackage -b -uc -tc`
+
+== Configuration
+After installation, either by manual building or from package, you may configure airtop-fpsvc and gpu-thermald service.
+
+Edit /etc/default/airtop-fpsvc and /etc/default/gpu-thermald to set the service options.
 
 == Supported features status
 

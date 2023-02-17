@@ -1,0 +1,14 @@
+i3m-linux-daemon (1.1.1~dev) UNRELEASED; urgency=medium
+
+  [ Nikita Kiryanov ]
+  * Passing the following information to the Front Panel:
+    * CPU Temperature
+    * CPU Frequency
+    * GPU Temperature
+  * HDD Temperature and volume (currently there is no FP request for HDD volume)
+  * Limiting GPU power and/or temperature - GPU Thermal daemon
+
+  [ Michael Wolf ]
+  * Added build package for Debian/Ubunutu.
+
+ -- Michael Wolf <michael@mictronics.de>  Fri, 17 Feb 2023 17:50:01 +0100

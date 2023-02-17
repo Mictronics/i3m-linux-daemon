@@ -1,0 +1,8 @@
+# GPU temperature limit in degC 
+#temp-limit=
+
+# GPU power limit in milliW 
+#power-limit=
+
+# Print to system log messages up to LEVEL. LEVEL may be either [notice], info, debug 
+#loglevel=

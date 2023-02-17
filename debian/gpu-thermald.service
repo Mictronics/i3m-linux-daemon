@@ -1,0 +1,14 @@
+# gpu-thermald - CompuLab AirTop GPU Thermal Daemon
+
+[Unit]
+Description=gpu-thermald daemon
+
+[Service]
+EnvironmentFile=-/etc/default/gpu-thermald
+ExecStartPre=/usr/bin/lspci -nn | grep VGA | grep NVIDIA
+ExecStart=/usr/bin/gpu-thermald
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+

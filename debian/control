@@ -2,7 +2,7 @@ Source: i3m-linux-daemon
 Section: utils
 Priority: optional
 Maintainer: Michael Wolf <michael@mictronics.de>
-Build-Depends: debhelper(>=9), pkg-config, dh-systemd, libi2c-dev, libatasmart-dev, libsensors4-dev
+Build-Depends: debhelper(>=9), pkg-config, debhelper, libi2c-dev, libatasmart-dev, libsensors4-dev
 Standards-Version: 4.6.2
 Homepage: https://github.com/Mictronics/i3m-linux-daemon
 Vcs-Git: https://github.com/Mictronics/i3m-linux-daemon.git

@@ -5,7 +5,10 @@ This project consists of the following parts:
 - **airtop-fpsvc** - AirTop Front Panel service daemon. This service provides hardware-related metrics to the AirTop front panel controller.
 - **gpu-thermald** - GPU Thermal daemon. This service sets GPU temperature upper limit by constantly controlling its power.
 
-Tested with AirTop1 under distro Linux Mint 20.3 Una base: Ubuntu 20.04 focal.
+Tested with AirTop1 under distro:
+
+- Linux Mint 20.3 Una base: Ubuntu 20.04 focal
+- Linux Mint 21.1 Vera base: Ubuntu 22.04 jammy
 
 ## Building manually
 

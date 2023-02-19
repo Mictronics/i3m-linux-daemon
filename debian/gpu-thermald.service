@@ -4,7 +4,6 @@
 Description=gpu-thermald daemon
 
 [Service]
-ExecStartPre=/usr/bin/lspci -nn | grep VGA | grep NVIDIA
 ExecStart=/usr/bin/gpu-thermald --configfile=/etc/default/gpu-thermald
 Restart=no
 

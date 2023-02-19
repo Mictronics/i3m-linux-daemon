@@ -16,7 +16,7 @@ SRC_TEMP = $(notdir $(SOURCES))
 OBJS = $(SRC_TEMP:%.c=$(OBJDIR)/%.o)
 CFLAGS  = -Wall -I$(NVMLDIR)
 LFLAGS  = -Wall -rdynamic
-LLIBS   = -ldl
+LLIBS   = -ldl -lpci
 COMPILE_CMD = gcc $(CFLAGS)
 STRIP_CMD   = strip
 LINK_CMD    = gcc $(LFLAGS)

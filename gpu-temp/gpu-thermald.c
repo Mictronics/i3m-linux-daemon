@@ -16,18 +16,21 @@
 #include <signal.h>
 #include <libgen.h>
 #include <unistd.h>
+#include <ctype.h>
+#include <x86_64-linux-gnu/pci/pci.h>
 
 #include "gpu-thermald.h"
 #include "gpu-options.h"
 #include "../nvml-tools.h"
 
-
-#define goto_if(cond, line, label)		\
-	do {					\
-		if ( (cond) ) {			\
-			line = __LINE__;	\
-			goto label;		\
-		}				\
+#define goto_if(cond, line, label) \
+	do                             \
+	{                              \
+		if ((cond))                \
+		{                          \
+			line = __LINE__;       \
+			goto label;            \
+		}                          \
 	} while (0)
 
 #define clamp(val, min, max) ({			\
@@ -39,8 +42,8 @@
 	__val = __val < __min ? __min: __val;	\
 	__val > __max ? __max: __val; })
 
-
-typedef struct {
+typedef struct
+{
 	unsigned int powerLimitMin;
 	unsigned int powerLimitMax;
 	unsigned int powerLimitActual;
@@ -49,7 +52,6 @@ typedef struct {
 static GPUPower gpu_power;
 static GPUOptions options;
 NvmlHandle *nvmlh;
-
 
 static void initialize(void)
 {
@@ -79,8 +81,8 @@ static void initialize(void)
 	goto_if((err != NVML_SUCCESS), line, init_out1);
 
 	err = nvmlh->nvmlDeviceGetPowerManagementLimitConstraints(nvmlh->device,
-								&gpu_power.powerLimitMin,
-								&gpu_power.powerLimitMax);
+															  &gpu_power.powerLimitMin,
+															  &gpu_power.powerLimitMax);
 	goto_if((err != NVML_SUCCESS), line, init_out1);
 
 	err = nvmlh->nvmlDeviceGetPowerManagementLimit(nvmlh->device, &gpu_power.powerLimitActual);
@@ -118,7 +120,6 @@ static void SIGALRM_handler(int signo)
 	/* nothing */
 }
 
-
 /*
  * Control system
  *
@@ -135,23 +136,23 @@ static void SIGALRM_handler(int signo)
  *    limit the power too much.
  * 3. Common control loop.
  */
-#define TEMP_CTRL_DELTAT		5
-#define LAMBDA				0.9
+#define TEMP_CTRL_DELTAT 5
+#define LAMBDA 0.9
 
 /* (almost) no control range */
-#define ncP_FACTOR			0	/* -- */
-#define ncI_FACTOR			(20.0 * TEMP_CTRL_DELTAT)
-#define ncD_FACTOR			0	/* -- */
+#define ncP_FACTOR 0 /* -- */
+#define ncI_FACTOR (20.0 * TEMP_CTRL_DELTAT)
+#define ncD_FACTOR 0 /* -- */
 
 /* normal control range */
-#define nP_FACTOR			1500.0
-#define nI_FACTOR			(4.0 * TEMP_CTRL_DELTAT)
-#define nD_FACTOR			0	/* -- */
+#define nP_FACTOR 1500.0
+#define nI_FACTOR (4.0 * TEMP_CTRL_DELTAT)
+#define nD_FACTOR 0 /* -- */
 
 /* emergency control range */
-#define eP_FACTOR			1500.0
-#define eI_FACTOR			(40.0 * TEMP_CTRL_DELTAT)
-#define eD_FACTOR			0	/* -- */
+#define eP_FACTOR 1500.0
+#define eI_FACTOR (40.0 * TEMP_CTRL_DELTAT)
+#define eD_FACTOR 0 /* -- */
 
 static double err_integral = 0.0;
 
@@ -167,36 +168,43 @@ static unsigned int pid_control(unsigned int _temp, unsigned int _temp_limit)
 	double p;
 	double i;
 
-	if (temp <= LAMBDA * temp_max) {
+	if (temp <= LAMBDA * temp_max)
+	{
 		/* (almost) no control required */
 		p = 0.0;
 		i = 0.0;
 
-		if (err_integral < 0.0) {
+		if (err_integral < 0.0)
+		{
 			i = err_integral + ncI_FACTOR * (temp_max - temp);
 			if (i > 0.0)
 				i = 0.0;
 		}
 	}
-	else if (temp <= temp_max) {
+	else if (temp <= temp_max)
+	{
 		/* normal control */
 		p = nP_FACTOR * (LAMBDA * temp_max - temp);
 		i = err_integral + nI_FACTOR * (temp_max - temp);
 	}
-	else {
+	else
+	{
 		/* emergency control */
 		p = eP_FACTOR * (LAMBDA * temp_max - temp);
 		i = err_integral + eI_FACTOR * (temp_max - temp);
 	}
 
 	pl = power_max + p + i;
-	if (pl > power_max) {
+	if (pl > power_max)
+	{
 		pl = power_max;
 	}
-	else if (pl < power_min) {
+	else if (pl < power_min)
+	{
 		pl = power_min;
 	}
-	else {
+	else
+	{
 		err_integral = i;
 	}
 
@@ -209,6 +217,42 @@ static unsigned int pid_control(unsigned int _temp, unsigned int _temp_limit)
 	return (unsigned int)pl;
 }
 
+static int scan_pci_devices(void)
+{
+	struct pci_access *pacc;
+	struct pci_dev *dev;
+	char namebuf[1024], *name;
+	int res = -1;
+
+	pacc = pci_alloc();								// Get the pci_access structure
+	pci_init(pacc);									// Initialize the PCI library
+	pci_scan_bus(pacc);								// Get the list of devices
+	for (dev = pacc->devices; dev; dev = dev->next) // Iterate over all devices
+	{
+		pci_fill_info(dev, PCI_FILL_IDENT | PCI_FILL_BASES | PCI_FILL_CLASS); // Fill in header info
+		if (dev->device_class == PCI_CLASS_DISPLAY_VGA)
+		{ // Check only display adapters
+			name = pci_lookup_name(pacc, namebuf, sizeof(namebuf), PCI_LOOKUP_DEVICE, dev->vendor_id, dev->device_id);
+			// Cope with naming mess in PCI vendor database
+			for (; *name; ++name)
+			{
+				*name = tolower(*name);
+			}
+			name = namebuf;
+			if (strstr(namebuf, "nvidia") != NULL)
+			{ // Accept only NVIDIA type cards
+				slogd("Found %s", name);
+				res = 0;
+			}
+			else
+			{
+				slogd("No NVIDIA graphic card found.");
+			}
+		}
+	}
+	pci_cleanup(pacc); // Close everything
+	return res;
+}
 
 int main(int argc, char *argv[])
 {
@@ -216,31 +260,38 @@ int main(int argc, char *argv[])
 	unsigned int power_limit;
 	unsigned int power_limit_prev;
 
+	// Scan PCI devices
+	if (scan_pci_devices())
+		return 1;
+
 	gpu_options_process_or_abort(&options, argc, argv);
 	initialize();
 	atexit(cleanup);
 
 	signal(SIGTERM, SIGTERM_handler);
-	signal(SIGINT, SIGTERM_handler);	/* Ctrl-C */
+	signal(SIGINT, SIGTERM_handler); /* Ctrl-C */
 	signal(SIGALRM, SIGALRM_handler);
 
 	power_limit_prev = gpu_power.powerLimitActual;
 
 	/* override pre-set power limit */
-	if (options.power_limit_set) {
+	if (options.power_limit_set)
+	{
 		gpu_power.powerLimitActual = clamp(options.power_limit,
-						   gpu_power.powerLimitMin, gpu_power.powerLimitMax);
+										   gpu_power.powerLimitMin, gpu_power.powerLimitMax);
 	}
 
-	while ( 1 ) {
+	while (1)
+	{
 		alarm(TEMP_CTRL_DELTAT);
 
 		nvmlh->nvmlDeviceGetTemperature(nvmlh->device,
-						NVML_TEMPERATURE_GPU/*no other options*/,
-						&temp);
+										NVML_TEMPERATURE_GPU /*no other options*/,
+										&temp);
 
 		power_limit = pid_control(temp, options.temp_limit);
-		if (power_limit != power_limit_prev) {
+		if (power_limit != power_limit_prev)
+		{
 			power_limit_prev = power_limit;
 			nvmlh->nvmlDeviceSetPowerManagementLimit(nvmlh->device, power_limit);
 		}
@@ -250,4 +301,3 @@ int main(int argc, char *argv[])
 
 	return 1;
 }
-

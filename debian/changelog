@@ -1,4 +1,4 @@
-i3m-linux-daemon (1.1.1~dev) UNRELEASED; urgency=medium
+i3m-linux-daemon (1.1.2~dev) UNRELEASED; urgency=medium
 
   [ Nikita Kiryanov ]
   * Passing the following information to the Front Panel:
@@ -10,5 +10,6 @@ i3m-linux-daemon (1.1.1~dev) UNRELEASED; urgency=medium
 
   [ Michael Wolf ]
   * Added build package for Debian/Ubunutu.
+  * Use libpci to scan for NVIDIA graphic cards. Avoids usage os lspci in service file.
 
  -- Michael Wolf <michael@mictronics.de>  Fri, 17 Feb 2023 17:50:01 +0100

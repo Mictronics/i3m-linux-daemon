@@ -142,7 +142,7 @@ static int atasmart_get_info(const char *devname, void *arg)
 	}
 
 	si = new_SMARTinfo();
-	strncpy(si->devname, devname, HDD_DEVNAME_SIZE - 1);
+	memcpy(si->devname, devname, HDD_DEVNAME_SIZE);
 	err = sk_disk_smart_get_temperature(d, &mkelvin);
 	if (err < 0)
 	{
